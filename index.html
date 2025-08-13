@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 2rem 1.5rem;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .sidebar h2 {
+            color: #1a1a1a;
+            margin-bottom: 1.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .quick-action-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            color: #1a1a1a;
+            font-weight: 500;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .quick-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .quick-action-btn:hover::before {
+            left: 100%;
+        }
+        
+        .quick-action-btn:hover {
+            background: rgba(102, 126, 234, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .main-content {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .tab-container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            background: rgba(102, 126, 234, 0.05);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 1.25rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .tab-btn.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .tab-btn:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2.5rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.75rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.75rem;
+            line-height: 1;
+        }
+        
+        .stat-card .change {
+            font-size: 0.9rem;
+            color: #28a745;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat-card .change::before {
+            content: '↗';
+            font-size: 1.1rem;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .recent-activity, .upcoming-deadlines {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .recent-activity h3, .upcoming-deadlines h3 {
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .activity-item, .deadline-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .activity-item:hover, .deadline-item:hover {
+            background: rgba(102, 126, 234, 0.02);
+            margin: 0 -1rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .activity-item:last-child, .deadline-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-item .activity-info {
+            flex: 1;
+        }
+        
+        .activity-item .activity-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        
+        .activity-item .activity-time {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .activity-item .activity-amount {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+        
+        .deadline-item .deadline-info {
+            flex: 1;
+        }
+        
+        .deadline-item .deadline-title {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        
+        .deadline-item .deadline-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .deadline-item .deadline-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-urgent {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        .status-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+        
+        .status-normal {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        
+        .tool-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tool-card h3 {
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .tool-card p {
+            color: #666;
+            margin-bottom: 1.75rem;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .tool-card .premium-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+                padding: 1.5rem;
+            }
+            
+            .main-content {
+                order: 1;
+                padding: 1.5rem;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Freelancer Analytics Dashboard</h1>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </header>
+        
+        <aside class="sidebar">
+            <h2>Quick Actions</h2>
+            <div class="quick-actions">
+                <button class="quick-action-btn" onclick="openModal('clientModal')">Add Client</button>
+                <button class="quick-action-btn" onclick="openModal('proposalModal')">Create Proposal</button>
+                <button class="quick-action-btn" onclick="openModal('invoiceModal')">Generate Invoice</button>
+                <button class="quick-action-btn" onclick="openModal('projectModal')">New Project</button>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+                    <button class="tab-btn" onclick="switchTab('tools')">Premium Tools</button>
+                    <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
+                </div>
+                
+                <div id="dashboard" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>Total Earnings</h3>
+                            <div class="value">$12,450</div>
+                            <div class="change">+15% from last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Projects</h3>
+                            <div class="value">8</div>
+                            <div class="change">+2 new this week</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Pending Invoices</h3>
+                            <div class="value">$3,200</div>
+                            <div class="change">3 invoices due</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Client Satisfaction</h3>
+                            <div class="value">4.8/5</div>
+                            <div class="change">+0.2 from last month</div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-grid">
+                        <div class="recent-activity">
+                            <h3>Recent Activity</h3>
+                            <div id="recentActivity">
+                                <!-- Activity items will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <div class="upcoming-deadlines">
+                            <h3>Upcoming Deadlines</h3>
+                            <div id="upcomingDeadlines">
+                                <!-- Deadline items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tools" class="tab-content">
+                    <div class="tools-grid">
+                        <div class="tool-card" onclick="openPremiumDialog('timeTrackerDialog')">
+                            <h3>Time Tracker</h3>
+                            <p>Track your work hours and billable time with precision.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                        <div class="tool-card" onclick="openPremiumDialog('expenseManagerDialog')">
+                            <h3>Expense Manager</h3>
+                            <p>Manage and categorize your business expenses.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                        <div class="tool-card" onclick="openPremiumDialog('currencyConverterDialog')">
+                            <h3>Currency Converter</h3>
+                            <p>Convert currencies with live exchange rates.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                        <div class="tool-card" onclick="openPremiumDialog('analyticsDialog')">
+                            <h3>Business Analytics</h3>
+                            <p>Advanced analytics and insights for your business.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                        <div class="tool-card" onclick="openPremiumDialog('contractGeneratorDialog')">
+                            <h3>Contract Generator</h3>
+                            <p>Generate professional contracts and agreements.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                        <div class="tool-card" onclick="openPremiumDialog('backupToolDialog')">
+                            <h3>Secure Data Backup</h3>
+                            <p>Backup and restore your important data safely.</p>
+                            <div class="premium-badge">Premium</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="analytics" class="tab-content">
+                    <h2>Comprehensive Analytics</h2>
+                    <p>Advanced analytics features coming soon...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+        
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Premium dialog functionality
+        function openPremiumDialog(dialogId) {
+            document.getElementById(dialogId).style.display = 'block';
+        }
+        
+        function closePremiumDialog(dialogId) {
+            document.getElementById(dialogId).style.display = 'none';
+        }
+        
+        // Initialize dashboard data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+        
+        function loadDashboardData() {
+            // Load recent activity
+            const recentActivity = [
+                { title: 'Invoice #1234 paid', time: '2 hours ago', amount: '$1,200' },
+                { title: 'New project started', time: '1 day ago', amount: 'Web Design' },
+                { title: 'Client meeting completed', time: '2 days ago', amount: 'Consultation' },
+                { title: 'Proposal sent', time: '3 days ago', amount: 'Mobile App' }
+            ];
+            
+            const activityContainer = document.getElementById('recentActivity');
+            recentActivity.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                activityItem.innerHTML = `
+                    <div class="activity-info">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                    <div class="activity-amount">${activity.amount}</div>
+                `;
+                activityContainer.appendChild(activityItem);
+            });
+            
+            // Load upcoming deadlines
+            const upcomingDeadlines = [
+                { title: 'Website Redesign', date: 'Dec 15, 2024', status: 'urgent' },
+                { title: 'Mobile App Development', date: 'Dec 20, 2024', status: 'warning' },
+                { title: 'Brand Identity Design', date: 'Dec 25, 2024', status: 'normal' }
+            ];
+            
+            const deadlineContainer = document.getElementById('upcomingDeadlines');
+            upcomingDeadlines.forEach(deadline => {
+                const deadlineItem = document.createElement('div');
+                deadlineItem.className = 'deadline-item';
+                deadlineItem.innerHTML = `
+                    <div class="deadline-info">
+                        <div class="deadline-title">${deadline.title}</div>
+                        <div class="deadline-date">${deadline.date}</div>
+                    </div>
+                    <div class="deadline-status status-${deadline.status}">${deadline.status}</div>
+                `;
+                deadlineContainer.appendChild(deadlineItem);
+            });
+        }
+    </script>
+</body>
+</html>
